@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const openPositions = [
   {
@@ -83,19 +84,49 @@ export default function Careers() {
     name: "",
     email: "",
     phone: "",
+    college: "",
+    yearOfStudy: "",
     position: "",
     portfolio: "",
     message: "",
   });
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Application Submitted!",
-      description: "Thank you for your interest. We'll get back to you soon.",
-    });
-    setFormData({ name: "", email: "", phone: "", position: "", portfolio: "", message: "" });
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from("internship_applications")
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          college: formData.college,
+          year_of_study: formData.yearOfStudy,
+          position: formData.position,
+          portfolio_url: formData.portfolio || null,
+          cover_letter: formData.message || null,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Application Submitted!",
+        description: "Thank you for your interest. We'll get back to you soon.",
+      });
+      setFormData({ name: "", email: "", phone: "", college: "", yearOfStudy: "", position: "", portfolio: "", message: "" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -335,6 +366,34 @@ export default function Careers() {
                 </div>
               </div>
 
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">College/University *</label>
+                  <Input
+                    required
+                    value={formData.college}
+                    onChange={(e) => setFormData({ ...formData, college: e.target.value })}
+                    placeholder="Your college name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Year of Study *</label>
+                  <select
+                    required
+                    value={formData.yearOfStudy}
+                    onChange={(e) => setFormData({ ...formData, yearOfStudy: e.target.value })}
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Select year</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                    <option value="Graduate">Graduate</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Portfolio/LinkedIn URL</label>
                 <Input
@@ -345,9 +404,8 @@ export default function Careers() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Why do you want to join? *</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Why do you want to join?</label>
                 <Textarea
-                  required
                   rows={4}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -355,8 +413,8 @@ export default function Careers() {
                 />
               </div>
 
-              <Button type="submit" variant="hero" size="lg" className="w-full">
-                Submit Application
+              <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
+                {loading ? "Submitting..." : "Submit Application"}
                 <Send className="w-5 h-5" />
               </Button>
             </form>
