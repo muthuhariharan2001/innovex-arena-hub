@@ -1,63 +1,77 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, Users, Clock, ArrowRight, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, ArrowRight } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { EventRegistrationModal } from "@/components/EventRegistrationModal";
+import { supabase } from "@/integrations/supabase/client";
 
-const upcomingEvents = [
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  event_date: string;
+  end_date: string | null;
+  location: string | null;
+  event_type: string;
+  max_participants: number | null;
+  registration_deadline: string | null;
+  image_url: string | null;
+}
+
+const fallbackEvents = [
   {
+    id: "1",
     title: "AI & Machine Learning Workshop",
     description: "Deep dive into neural networks, TensorFlow, and practical ML applications.",
-    date: "January 15, 2025",
-    time: "10:00 AM - 5:00 PM",
+    event_date: "2025-01-15T10:00:00",
+    end_date: null,
     location: "Virtual Event",
-    attendees: "100+ Expected",
-    type: "Workshop",
-    status: "Registration Open",
+    event_type: "Workshop",
+    max_participants: 100,
+    registration_deadline: "2025-01-14T23:59:59",
+    image_url: null,
   },
   {
+    id: "2",
     title: "Cloud Computing Bootcamp",
     description: "Hands-on AWS certification prep with real-world projects.",
-    date: "January 22-23, 2025",
-    time: "9:00 AM - 6:00 PM",
+    event_date: "2025-01-22T09:00:00",
+    end_date: "2025-01-23T18:00:00",
     location: "Hyderabad, India",
-    attendees: "50 Seats",
-    type: "Bootcamp",
-    status: "Registration Open",
+    event_type: "Bootcamp",
+    max_participants: 50,
+    registration_deadline: "2025-01-20T23:59:59",
+    image_url: null,
   },
   {
+    id: "3",
     title: "Innovation Hackathon 2025",
     description: "48-hour hackathon with prizes worth ₹5 Lakhs. Build solutions for real problems.",
-    date: "February 10-11, 2025",
-    time: "All Day Event",
+    event_date: "2025-02-10T00:00:00",
+    end_date: "2025-02-11T23:59:59",
     location: "Multiple Colleges",
-    attendees: "500+ Participants",
-    type: "Hackathon",
-    status: "Coming Soon",
+    event_type: "Hackathon",
+    max_participants: 500,
+    registration_deadline: null,
+    image_url: null,
   },
   {
+    id: "4",
     title: "Generative AI Masterclass",
     description: "Learn to build applications with ChatGPT API, DALL-E, and other Gen AI tools.",
-    date: "February 25, 2025",
-    time: "2:00 PM - 7:00 PM",
+    event_date: "2025-02-25T14:00:00",
+    end_date: null,
     location: "Online",
-    attendees: "200+ Expected",
-    type: "Masterclass",
-    status: "Registration Open",
-  },
-  {
-    title: "Web Development Sprint",
-    description: "Build a full-stack application from scratch in one week.",
-    date: "March 3-9, 2025",
-    time: "Self-paced",
-    location: "Virtual",
-    attendees: "100 Seats",
-    type: "Intensive",
-    status: "Coming Soon",
+    event_type: "Masterclass",
+    max_participants: 200,
+    registration_deadline: "2025-02-24T23:59:59",
+    image_url: null,
   },
 ];
 
-const pastEvents = [
+const pastEventsData = [
   {
     title: "Cybersecurity Workshop",
     date: "December 2024",
@@ -85,6 +99,37 @@ const pastEvents = [
 ];
 
 export default function Events() {
+  const [events, setEvents] = useState<Event[]>(fallbackEvents);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("is_published", true)
+        .gte("event_date", new Date().toISOString())
+        .order("event_date", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        setEvents(data);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const handleRegister = (event: Event) => {
+    setSelectedEvent(event);
+    setModalOpen(true);
+  };
+
+  const isRegistrationOpen = (event: Event) => {
+    if (!event.registration_deadline) return true;
+    return new Date(event.registration_deadline) > new Date();
+  };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -129,9 +174,9 @@ export default function Events() {
           </motion.div>
 
           <div className="space-y-6">
-            {upcomingEvents.map((event, index) => (
+            {events.map((event, index) => (
               <motion.div
-                key={event.title}
+                key={event.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -142,14 +187,14 @@ export default function Events() {
                   {/* Event Type Badge */}
                   <div className="lg:w-48 bg-gradient-to-br from-primary to-secondary p-6 flex flex-col justify-center items-center text-center">
                     <span className="font-heading text-sm font-bold text-primary-foreground uppercase tracking-wider mb-2">
-                      {event.type}
+                      {event.event_type}
                     </span>
                     <span className={`text-xs font-medium px-3 py-1 rounded-full ${
-                      event.status === "Registration Open" 
+                      isRegistrationOpen(event) 
                         ? "bg-primary-foreground/20 text-primary-foreground" 
                         : "bg-primary-foreground/10 text-primary-foreground/70"
                     }`}>
-                      {event.status}
+                      {isRegistrationOpen(event) ? "Registration Open" : "Coming Soon"}
                     </span>
                   </div>
 
@@ -165,29 +210,32 @@ export default function Events() {
                         <div className="grid sm:grid-cols-2 gap-3">
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Calendar className="w-4 h-4 text-primary" />
-                            <span>{event.date}</span>
+                            <span>{new Date(event.event_date).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Clock className="w-4 h-4 text-primary" />
-                            <span>{event.time}</span>
+                            <span>{new Date(event.event_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <MapPin className="w-4 h-4 text-primary" />
-                            <span>{event.location}</span>
+                            <span>{event.location || "Online"}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Users className="w-4 h-4 text-primary" />
-                            <span>{event.attendees}</span>
-                          </div>
+                          {event.max_participants && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Users className="w-4 h-4 text-primary" />
+                              <span>{event.max_participants} Seats</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       <div className="flex lg:flex-col gap-3">
                         <Button 
-                          variant={event.status === "Registration Open" ? "glow" : "outline"} 
-                          disabled={event.status !== "Registration Open"}
+                          variant={isRegistrationOpen(event) ? "glow" : "outline"} 
+                          disabled={!isRegistrationOpen(event)}
+                          onClick={() => handleRegister(event)}
                         >
-                          {event.status === "Registration Open" ? "Register Now" : "Coming Soon"}
+                          {isRegistrationOpen(event) ? "Register Now" : "Coming Soon"}
                         </Button>
                       </div>
                     </div>
@@ -217,7 +265,7 @@ export default function Events() {
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pastEvents.map((event, index) => (
+            {pastEventsData.map((event, index) => (
               <motion.div
                 key={event.title}
                 initial={{ opacity: 0, y: 20 }}
@@ -271,6 +319,13 @@ export default function Events() {
           </motion.div>
         </div>
       </section>
+
+      {/* Registration Modal */}
+      <EventRegistrationModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        event={selectedEvent}
+      />
     </Layout>
   );
 }
