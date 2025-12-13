@@ -458,7 +458,7 @@ function InternsTab() {
                   <p className="text-sm text-muted-foreground">{app.college} • {app.year_of_study}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select value={app.status} onChange={(e) => updateStatus(app.id, e.target.value)} className="h-8 px-2 rounded border border-input bg-background text-sm">
+                  <select value={app.status} onChange={(e) => updateStatus(app.id, e.target.value as "pending" | "reviewed" | "accepted" | "rejected")} className="h-8 px-2 rounded border border-input bg-background text-sm">
                     <option value="pending">Pending</option><option value="reviewed">Reviewed</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
                   </select>
                 </div>
@@ -516,7 +516,7 @@ function CareersTab() {
                   <p className="text-sm text-muted-foreground">{app.position} • {app.email}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <select value={app.status} onChange={(e) => updateStatus(app.id, e.target.value)} className="h-8 px-2 rounded border border-input bg-background text-sm">
+                  <select value={app.status} onChange={(e) => updateStatus(app.id, e.target.value as "pending" | "reviewed" | "accepted" | "rejected")} className="h-8 px-2 rounded border border-input bg-background text-sm">
                     <option value="pending">Pending</option><option value="reviewed">Reviewed</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
                   </select>
                 </div>
