@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ResumeUpload } from "@/components/ResumeUpload";
 
 const internshipPositions = [
   {
@@ -139,6 +140,7 @@ export default function Interns() {
     yearOfStudy: "",
     position: "",
     portfolio: "",
+    resume: "",
     message: "",
   });
   const [loading, setLoading] = useState(false);
@@ -159,6 +161,7 @@ export default function Interns() {
           year_of_study: formData.yearOfStudy,
           position: formData.position,
           portfolio_url: formData.portfolio || null,
+          resume_url: formData.resume || null,
           cover_letter: formData.message || null,
         });
 
@@ -168,7 +171,7 @@ export default function Interns() {
         title: "Application Submitted!",
         description: "Thank you for applying. We'll review your application and get back to you soon.",
       });
-      setFormData({ name: "", email: "", phone: "", college: "", yearOfStudy: "", position: "", portfolio: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", college: "", yearOfStudy: "", position: "", portfolio: "", resume: "", message: "" });
     } catch (error) {
       toast({
         title: "Error",
@@ -446,6 +449,14 @@ export default function Interns() {
                     <option value="Graduate">Graduate</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Resume *</label>
+                <ResumeUpload
+                  value={formData.resume}
+                  onChange={(url) => setFormData({ ...formData, resume: url })}
+                />
               </div>
 
               <div>
