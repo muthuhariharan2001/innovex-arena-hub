@@ -116,6 +116,22 @@ export default function Careers() {
 
       if (error) throw error;
 
+      // Send email notification
+      try {
+        await supabase.functions.invoke("notify-application", {
+          body: {
+            type: "career",
+            applicantName: formData.name,
+            applicantEmail: formData.email,
+            position: formData.position,
+            college: formData.college,
+            phone: formData.phone,
+          },
+        });
+      } catch (emailError) {
+        console.log("Email notification failed, but application was saved:", emailError);
+      }
+
       toast({
         title: "Application Submitted!",
         description: "Thank you for your interest. We'll get back to you soon.",

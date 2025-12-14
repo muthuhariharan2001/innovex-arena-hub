@@ -20,6 +20,7 @@ import {
   Trash2,
   GraduationCap,
   Briefcase,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +31,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ImageUpload } from "@/components/ImageUpload";
 import { exportToExcel } from "@/lib/exportToExcel";
+import { TeamTab } from "@/components/admin/TeamTab";
 
-type TabType = "overview" | "events" | "interns" | "careers" | "contacts" | "newsletter" | "blog" | "products" | "testimonials" | "registrations";
+type TabType = "overview" | "events" | "interns" | "careers" | "contacts" | "newsletter" | "blog" | "products" | "testimonials" | "registrations" | "team";
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
@@ -119,6 +121,7 @@ export default function Admin() {
     { id: "blog", label: "Blog Posts", icon: FileText },
     { id: "products", label: "Products", icon: Box },
     { id: "testimonials", label: "Testimonials", icon: Star },
+    { id: "team", label: "Team", icon: Shield },
   ];
 
   if (loading) {
@@ -217,6 +220,7 @@ export default function Admin() {
           {activeTab === "blog" && <BlogTab />}
           {activeTab === "products" && <ProductsTab />}
           {activeTab === "testimonials" && <TestimonialsTab />}
+          {activeTab === "team" && <TeamTab />}
         </div>
       </main>
 

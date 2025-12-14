@@ -167,6 +167,22 @@ export default function Interns() {
 
       if (error) throw error;
 
+      // Send email notification
+      try {
+        await supabase.functions.invoke("notify-application", {
+          body: {
+            type: "internship",
+            applicantName: formData.name,
+            applicantEmail: formData.email,
+            position: formData.position,
+            college: formData.college,
+            phone: formData.phone,
+          },
+        });
+      } catch (emailError) {
+        console.log("Email notification failed, but application was saved:", emailError);
+      }
+
       toast({
         title: "Application Submitted!",
         description: "Thank you for applying. We'll review your application and get back to you soon.",
