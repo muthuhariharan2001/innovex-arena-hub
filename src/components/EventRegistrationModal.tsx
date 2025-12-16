@@ -34,7 +34,9 @@ export function EventRegistrationModal({ open, onOpenChange, event }: EventRegis
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      console.log("Submitting event registration:", { event: event.title, ...formData });
+      
+      const { data, error } = await supabase
         .from("event_registrations")
         .insert({
           event_id: event.id,
@@ -42,9 +44,15 @@ export function EventRegistrationModal({ open, onOpenChange, event }: EventRegis
           email: formData.email,
           phone: formData.phone || null,
           college: formData.college || null,
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Event registration saved successfully:", data);
 
       toast({
         title: "Registration Successful!",
@@ -54,9 +62,10 @@ export function EventRegistrationModal({ open, onOpenChange, event }: EventRegis
       setFormData({ name: "", email: "", phone: "", college: "" });
       onOpenChange(false);
     } catch (error: any) {
+      console.error("Event registration error:", error);
       toast({
         title: "Registration Failed",
-        description: error.message || "Something went wrong. Please try again.",
+        description: error?.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
