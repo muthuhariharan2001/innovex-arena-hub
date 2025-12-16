@@ -151,7 +151,9 @@ export default function Interns() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      console.log("Submitting internship application:", formData);
+      
+      const { data, error } = await supabase
         .from("internship_applications")
         .insert({
           name: formData.name,
@@ -163,9 +165,15 @@ export default function Interns() {
           portfolio_url: formData.portfolio || null,
           resume_url: formData.resume || null,
           cover_letter: formData.message || null,
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Application saved successfully:", data);
 
       // Send email notification
       try {
@@ -188,10 +196,11 @@ export default function Interns() {
         description: "Thank you for applying. We'll review your application and get back to you soon.",
       });
       setFormData({ name: "", email: "", phone: "", college: "", yearOfStudy: "", position: "", portfolio: "", resume: "", message: "" });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Form submission error:", error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Submission Failed",
+        description: error?.message || "Something went wrong. Please check all fields and try again.",
         variant: "destructive",
       });
     } finally {

@@ -65,26 +65,35 @@ export default function Contact() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      console.log("Submitting contact form:", formData);
+      
+      const { data, error } = await supabase
         .from("contact_submissions")
         .insert({
           name: formData.name,
           email: formData.email,
           subject: formData.subject,
           message: formData.message,
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Contact form saved successfully:", data);
 
       toast({
         title: "Message Sent!",
         description: "Thank you for reaching out. We'll respond within 24 hours.",
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Form submission error:", error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Message Failed",
+        description: error?.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
